@@ -60,3 +60,11 @@ def update_student(
 
             session.add(student)
             session.commit()
+
+def update_student(student_id: int):
+    student = get_one_student(student_id)
+
+    if student:
+        with get_db() as session:
+            session.delete(student)
+            session.commit()
