@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy import or_, not_, and_
-from .models import Student
+from .models import Student, Certificate
 from .db import get_db
 
 
@@ -30,7 +30,6 @@ def get_one_student_by_id(student_id):
 
     return students
 
-
 def update_student(
         student_id: int | None = None,
         first_name: str | None = None,
@@ -56,3 +55,42 @@ def update_student(
             session.commit()
 
 
+
+
+def create_certificate(student_id, title, content, issued_at=None, certificate_code=None, is_verified=False):
+    certificate = Certificate(
+        student_id=student_id,
+        title=title,
+        content=content,
+        issued_at=issued_at,
+        certificate_code=certificate_code,
+        is_verified=is_verified
+    )
+    with get_db() as session:
+        session.add(certificate)
+        session.commit()
+        
+def get_all_certificates() -> list[Certificate]:
+    with get_db() as session:
+        certificates = session.query(Certificate).all()
+    return certificates
+
+def get_unverified_certificates() -> list[Certificate]:
+    with get_db() as session:
+        certificates = session.query(Certificate).filter(Certificate.is_verified == False).all()
+    return certificates
+
+def get_certificates_by_student(student_id: int) -> list[Certificate]:
+    with get_db() as session:
+        certificates = session.query(Certificate).filter(Certificate.student_id == student_id).all()
+    return certificates
+
+def get_certificate_by_code(certificate_code: str) -> Certificate | None:
+    with get_db() as session:
+        certificate = session.query(Certificate).filter(Certificate.certificate_code == certificate_code).first()
+    return certificate
+
+def get_last_five_certificates() -> list[Certificate]:
+    with get_db() as session:
+        certificates = session.query(Certificate).order_by(Certificate.issued_at.desc()).all()
+    return certificates[:5]
